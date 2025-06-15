@@ -1,6 +1,6 @@
 
 import { format } from "date-fns";
-import { zonedTimeToUtc, utcToZonedTime } from "date-fns-tz";
+import { fromZonedTime, toZonedTime } from "date-fns-tz"; // updated import
 
 // Simula un scheduler en frontend, en código nativo equivalente usarías WorkManager (Android) 
 // o AlarmManager + Servicio de Accesibilidad para background scheduler real.
@@ -14,7 +14,7 @@ export function getNextRun(hhmm: string, tz: string) {
   const [h, m] = hhmm.split(":").map(Number);
   const now = new Date();
   // Generar la fecha de próxima ejecución en el tz correcto
-  const next = utcToZonedTime(now, tz);
+  const next = toZonedTime(now, tz); // updated usage
   next.setHours(h, m, 0, 0);
   if (now >= next) next.setDate(next.getDate() + 1);
   return format(next, "dd/MM/yyyy HH:mm");
@@ -45,7 +45,7 @@ export function scheduleAgent(
 function triggerIfDue(hhmm: string, tz: string, onRun: (result: any) => void) {
   const [h, m] = hhmm.split(":").map(Number);
   const now = new Date();
-  const local = utcToZonedTime(now, tz);
+  const local = toZonedTime(now, tz); // updated usage
   if (local.getHours() === h && local.getMinutes() === m) {
     // Para evitar múltiples ejecuciones en la misma ventana de 1 minuto:
     const k = format(now, "yyyy-MM-dd-HH-mm");
@@ -60,3 +60,4 @@ function triggerIfDue(hhmm: string, tz: string, onRun: (result: any) => void) {
 export function unsubscribeAgent() {
   if (interval) clearInterval(interval);
 }
+
