@@ -41,13 +41,14 @@ const AgentConfigDialog: React.FC<Props> = ({
     if (selectedApps.includes(appId)) {
       setSelectedApps(selectedApps.filter((id) => id !== appId));
     } else {
-      if (selectedApps.length < 2) {
+      if (selectedApps.length < 3) {
         setSelectedApps([...selectedApps, appId]);
       }
     }
   }
 
-  const isSaveDisabled = selectedApps.length !== 2;
+  // Permitir 2 o 3 seleccionadas
+  const isSaveDisabled = selectedApps.length < 2 || selectedApps.length > 3;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -81,7 +82,7 @@ const AgentConfigDialog: React.FC<Props> = ({
           </div>
           <div>
             <label className="block mb-1 font-semibold">
-              Elige <b>2</b> aplicaciones a automatizar:
+              Elige <b>2 o 3</b> aplicaciones a automatizar:
             </label>
             <div className="flex gap-4">
               {APPS.map((app) => (
@@ -91,7 +92,7 @@ const AgentConfigDialog: React.FC<Props> = ({
                     checked={selectedApps.includes(app.id)}
                     onChange={() => handleAppCheck(app.id)}
                     disabled={
-                      !selectedApps.includes(app.id) && selectedApps.length === 2
+                      !selectedApps.includes(app.id) && selectedApps.length === 3
                     }
                   />
                   {app.label}
@@ -99,7 +100,7 @@ const AgentConfigDialog: React.FC<Props> = ({
               ))}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
-              Debes elegir exactamente dos aplicaciones.
+              Debes elegir mínimo dos y máximo tres aplicaciones.
             </div>
           </div>
         </div>
@@ -121,3 +122,4 @@ const AgentConfigDialog: React.FC<Props> = ({
 };
 
 export default AgentConfigDialog;
+
