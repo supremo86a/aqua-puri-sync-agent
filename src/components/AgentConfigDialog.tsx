@@ -10,11 +10,18 @@ const timezones = [
   { value: "America/Chicago", label: "CST - Chicago (Internacional)" },
 ];
 
+const APPS = [
+  { id: "ventas", label: "Ventas Agua" },
+  { id: "billetera", label: "Billetera" },
+  { id: "notas", label: "Notas Puri" },
+];
+
 interface Props {
   open: boolean;
   defaultTime: string;
   defaultTz: string;
-  onSave: (time: string, tz: string) => void;
+  defaultApps?: string[]; // array of ids e.g. ["ventas", "billetera"]
+  onSave: (time: string, tz: string, apps: string[]) => void;
   onClose: () => void;
 }
 
@@ -22,17 +29,31 @@ const AgentConfigDialog: React.FC<Props> = ({
   open,
   defaultTime,
   defaultTz,
+  defaultApps = ["ventas", "billetera"],
   onSave,
   onClose,
 }) => {
   const [time, setTime] = useState(defaultTime);
   const [tz, setTz] = useState(defaultTz);
+  const [selectedApps, setSelectedApps] = useState<string[]>(defaultApps);
+
+  function handleAppCheck(appId: string) {
+    if (selectedApps.includes(appId)) {
+      setSelectedApps(selectedApps.filter((id) => id !== appId));
+    } else {
+      if (selectedApps.length < 2) {
+        setSelectedApps([...selectedApps, appId]);
+      }
+    }
+  }
+
+  const isSaveDisabled = selectedApps.length !== 2;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Configurar horario</DialogTitle>
+          <DialogTitle>Configurar horario y apps</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-4">
           <div>
@@ -58,12 +79,38 @@ const AgentConfigDialog: React.FC<Props> = ({
               ))}
             </select>
           </div>
+          <div>
+            <label className="block mb-1 font-semibold">
+              Elige <b>2</b> aplicaciones a automatizar:
+            </label>
+            <div className="flex gap-4">
+              {APPS.map((app) => (
+                <label key={app.id} className="flex items-center gap-1">
+                  <input
+                    type="checkbox"
+                    checked={selectedApps.includes(app.id)}
+                    onChange={() => handleAppCheck(app.id)}
+                    disabled={
+                      !selectedApps.includes(app.id) && selectedApps.length === 2
+                    }
+                  />
+                  {app.label}
+                </label>
+              ))}
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              Debes elegir exactamente dos aplicaciones.
+            </div>
+          </div>
         </div>
         <DialogFooter>
-          <Button variant="secondary" onClick={onClose}>Cancelar</Button>
+          <Button variant="secondary" onClick={onClose}>
+            Cancelar
+          </Button>
           <Button
             variant="default"
-            onClick={() => onSave(time, tz)}
+            onClick={() => onSave(time, tz, selectedApps)}
+            disabled={isSaveDisabled}
           >
             Guardar
           </Button>

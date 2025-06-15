@@ -6,6 +6,7 @@ import { format } from "date-fns";
 // para disparar el servicio de accesibilidad manejado fuera del navegador.
 
 type Step = {
+  id: string;
   name: string;
   description: string;
   action: () => Promise<string>;
@@ -24,26 +25,31 @@ async function runStep(step: Step): Promise<{ ok: boolean; log: string }> {
   }
 }
 
-export async function runAutomationTask() {
+/**
+ * appsSelected: array de ids ["ventas", "billetera", "notas"]
+ * si faltan, simplemente no se ejecuta ese paso
+ */
+export async function runAutomationTask(appsSelected?: string[]) {
   const now = new Date();
   const timestamp = format(now, "dd/MM/yyyy HH:mm");
   const logs: string[] = [];
   let status: "success" | "error" = "success";
   let message = "";
 
-  // Pasos a realizar, simulado.
+  // Tabla de pasos, el id debe coincidir con los checkboxes
   const steps: Step[] = [
     {
+      id: "ventas",
       name: "Ventas Agua",
       description: "Abrir app, Mensual, Copiar reporte",
       action: async () => {
         await sleep(500);
-        // 20% chance de error
         if (Math.random() < 0.2) throw new Error("App no respondió");
         return "Reporte copiado";
       },
     },
     {
+      id: "billetera",
       name: "Billetera",
       description: "Abrir app, Copiar Resumen Diario",
       action: async () => {
@@ -53,6 +59,7 @@ export async function runAutomationTask() {
       },
     },
     {
+      id: "notas",
       name: "Notas Puri",
       description: "Abrir, pegar ambos reportes en nueva entrada",
       action: async () => {
@@ -63,30 +70,35 @@ export async function runAutomationTask() {
     },
   ];
 
-  for (let i = 0; i < steps.length; ++i) {
-    const out = await runStep(steps[i]);
+  // Filtrar pasos según lo seleccionado o default (por compat)
+  const stepsToRun = Array.isArray(appsSelected) && appsSelected.length > 0
+    ? steps.filter((s) => appsSelected.includes(s.id))
+    : steps;
+
+  for (let i = 0; i < stepsToRun.length; ++i) {
+    const out = await runStep(stepsToRun[i]);
     logs.push(out.log);
     if (!out.ok) {
       status = "error";
       message = out.log;
-      // Reintentar tras 5 minutos si hay error
       logs.push("Esperando 5 minutos para reintentar...");
-      await sleep(200); // Simula 5min -> 0.2seg para demo
-      const retry = await runStep(steps[i]);
+      await sleep(200);
+      const retry = await runStep(stepsToRun[i]);
       logs.push("(Reintento) " + retry.log);
       if (!retry.ok) {
         message = retry.log;
-        logs.push("Fallo definitivo en " + steps[i].name);
+        logs.push("Fallo definitivo en " + stepsToRun[i].name);
         break;
       } else {
-        logs.push("Reintento exitoso en " + steps[i].name);
+        logs.push("Reintento exitoso en " + stepsToRun[i].name);
         status = "success";
       }
     }
   }
 
   if (status === "success") {
-    message = "Todos los pasos completados y guardados exitosamente en Notas Puri.";
+    message = "Todos los pasos completados y guardados exitosamente en " +
+      (stepsToRun.some((s) => s.id === "notas") ? "Notas Puri." : "las apps seleccionadas.");
   }
 
   return {
