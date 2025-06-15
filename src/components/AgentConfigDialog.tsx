@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
@@ -20,35 +20,24 @@ interface Props {
   open: boolean;
   defaultTime: string;
   defaultTz: string;
-  defaultApps?: string[]; // array of ids e.g. ["ventas", "billetera"]
+  defaultApps?: string[];
   onSave: (time: string, tz: string, apps: string[]) => void;
   onClose: () => void;
 }
+const DEFAULT_SELECTED = ["ventas", "billetera", "notas"];
 
 const AgentConfigDialog: React.FC<Props> = ({
   open,
   defaultTime,
   defaultTz,
-  defaultApps = ["ventas", "billetera"],
   onSave,
   onClose,
 }) => {
-  const [time, setTime] = useState(defaultTime);
-  const [tz, setTz] = useState(defaultTz);
-  const [selectedApps, setSelectedApps] = useState<string[]>(defaultApps);
+  const [time, setTime] = React.useState(defaultTime);
+  const [tz, setTz] = React.useState(defaultTz);
 
-  function handleAppCheck(appId: string) {
-    if (selectedApps.includes(appId)) {
-      setSelectedApps(selectedApps.filter((id) => id !== appId));
-    } else {
-      if (selectedApps.length < 3) {
-        setSelectedApps([...selectedApps, appId]);
-      }
-    }
-  }
-
-  // Permitir 2 o 3 seleccionadas
-  const isSaveDisabled = selectedApps.length < 2 || selectedApps.length > 3;
+  // Siempre seleccionado y deshabilitado
+  const selectedApps = DEFAULT_SELECTED;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -82,25 +71,22 @@ const AgentConfigDialog: React.FC<Props> = ({
           </div>
           <div>
             <label className="block mb-1 font-semibold">
-              Elige <b>2 o 3</b> aplicaciones a automatizar:
+              Aplicaciones automatizadas:
             </label>
             <div className="flex gap-4">
               {APPS.map((app) => (
-                <label key={app.id} className="flex items-center gap-1">
+                <label key={app.id} className="flex items-center gap-1 opacity-70">
                   <input
                     type="checkbox"
-                    checked={selectedApps.includes(app.id)}
-                    onChange={() => handleAppCheck(app.id)}
-                    disabled={
-                      !selectedApps.includes(app.id) && selectedApps.length === 3
-                    }
+                    checked
+                    disabled
                   />
                   {app.label}
                 </label>
               ))}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
-              Debes elegir mínimo dos y máximo tres aplicaciones.
+              Las 3 aplicaciones estarán siempre automatizadas.
             </div>
           </div>
         </div>
@@ -111,7 +97,6 @@ const AgentConfigDialog: React.FC<Props> = ({
           <Button
             variant="default"
             onClick={() => onSave(time, tz, selectedApps)}
-            disabled={isSaveDisabled}
           >
             Guardar
           </Button>
@@ -122,4 +107,3 @@ const AgentConfigDialog: React.FC<Props> = ({
 };
 
 export default AgentConfigDialog;
-

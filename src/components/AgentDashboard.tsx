@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Play, Clock, RefreshCw, Calendar, Settings, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,7 @@ import ExecutionLog from "./ExecutionLog";
 
 const AGENT_DEFAULT_TIME = "19:00";
 const AGENT_DEFAULT_TZ = "America/Mexico_City";
-const AGENT_DEFAULT_APPS = ["ventas", "billetera"]; // id values matching AgentConfigDialog
+const AGENT_DEFAULT_APPS = ["ventas", "billetera", "notas"]; // id values matching AgentConfigDialog
 
 type RunResult = {
   timestamp: string;
@@ -27,16 +26,16 @@ const APPS_LABELS: Record<string, string> = {
 };
 
 const AgentDashboard = () => {
-  const [showConfig, setShowConfig] = useState(false);
-  const [time, setTime] = useState(AGENT_DEFAULT_TIME);
-  const [tz, setTz] = useState(AGENT_DEFAULT_TZ);
-  const [apps, setApps] = useState<string[]>(AGENT_DEFAULT_APPS);
-  const [lastRun, setLastRun] = useState<RunResult | null>(null);
-  const [logs, setLogs] = useState<RunResult[]>([]);
-  const [isRunning, setIsRunning] = useState(false);
-  const [nextRun, setNextRun] = useState<string>("");
+  const [showConfig, setShowConfig] = React.useState(false);
+  const [time, setTime] = React.useState(AGENT_DEFAULT_TIME);
+  const [tz, setTz] = React.useState(AGENT_DEFAULT_TZ);
+  const [apps, setApps] = React.useState<string[]>(["ventas", "billetera", "notas"]);
+  const [lastRun, setLastRun] = React.useState<RunResult | null>(null);
+  const [logs, setLogs] = React.useState<RunResult[]>([]);
+  const [isRunning, setIsRunning] = React.useState(false);
+  const [nextRun, setNextRun] = React.useState<string>("");
 
-  useEffect(() => {
+  React.useEffect(() => {
     // Inicializar scheduler autómata
     const unsubscribe = scheduleAgent(
       time,
@@ -48,22 +47,21 @@ const AgentDashboard = () => {
           title: res.status === "success" ? "Ejecución exitosa" : "Error en la ejecución",
           description: res.message,
         });
-      },
-      apps // <-- esta será ignorada a menos que la pasemos a runAutomationTask
+      }
     );
     setNextRun(getNextRun(time, tz));
     return () => unsubscribeAgent && unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [time, tz, apps]);
+  }, [time, tz]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     setNextRun(getNextRun(time, tz));
   }, [time, tz, lastRun]);
 
-  // --- Ejecutar manualmente con apps elegidas
+  // Ejecutar manualmente
   const handleManualRun = async () => {
     setIsRunning(true);
-    const res = await runAutomationTask(apps); // pasamos apps seleccionadas
+    const res = await runAutomationTask(apps); // usa siempre las 3 apps
     setLastRun(res);
     setLogs((prev) => [res, ...prev]);
     toast({
@@ -136,12 +134,11 @@ const AgentDashboard = () => {
         open={showConfig}
         defaultTime={time}
         defaultTz={tz}
-        defaultApps={apps}
         onClose={() => setShowConfig(false)}
-        onSave={(newTime, newTz, newApps) => {
+        onSave={(newTime, newTz) => {
           setTime(newTime);
           setTz(newTz);
-          setApps(newApps);
+          setApps(["ventas", "billetera", "notas"]);
           setShowConfig(false);
           setNextRun(getNextRun(newTime, newTz));
         }}
