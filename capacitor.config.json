@@ -1,0 +1,6 @@
+
+{
+  "appId": "com.supremo.finflow",
+  "appName": "fin-flow-agent",
+  "webDir": "dist"
+}
