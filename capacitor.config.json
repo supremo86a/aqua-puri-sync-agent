@@ -2,5 +2,13 @@
 {
   "appId": "com.supremo.finflow",
   "appName": "fin-flow-agent",
-  "webDir": "dist"
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  }
 }
